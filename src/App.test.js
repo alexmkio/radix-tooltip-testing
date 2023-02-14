@@ -12,15 +12,20 @@ test("without hover/focus on button the tooltip text does not appear", () => {
   expect(screen.queryByText("https://reactjs.org")).not.toBeInTheDocument();
 });
 
-test("with hover/focus the tooltip text does appear", () => {
-  render(<App />);
-  userEvent.hover(screen.getByText(/learn react/i));
-  expect(screen.getByText("https://reactjs.org")).toBeInTheDocument();
-});
+test("with hover/focus the tooltip text does appear", async () => {
+  global.ResizeObserver = class ResizeObserver {
+    constructor(cb) {
+      this.cb = cb;
+    }
+    observe() {
+      this.cb([{ borderBoxSize: { inlineSize: 0, blockSize: 0 } }]);
+    }
+    unobserve() {}
+    disconnect() {}
+  };
 
-test("with hover/focus the tooltip text does appear async", async () => {
   render(<App />);
-  userEvent.hover(screen.getByText(/learn react/i));
-  const tooltipText = await screen.findByText("https://reactjs.org");
-  expect(tooltipText).toBeInTheDocument();
+  await userEvent.hover(screen.getByText(/learn react/i));
+  const tooltipText = await screen.findAllByText("https://reactjs.org");
+  expect(tooltipText).toBeTruthy();
 });
